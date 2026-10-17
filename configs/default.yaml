@@ -1,0 +1,73 @@
+# Default configuration for the Fuzzy-GNN seizure prediction experiments.
+# Every value used in the paper (Table 3) is defined here.
+
+data:
+  raw_dir: data/chbmit            # where the CHB-MIT EDF files and *-summary.txt files live
+  cache_dir: data/cache           # preprocessed signals and features are written here
+  channels: [FP1-F7, F7-T7, T7-P7, P7-O1, FP1-F3, F3-C3, C3-P3, P3-O1,
+             FP2-F4, F4-C4, C4-P4, P4-O2, FP2-F8, F8-T8, T8-P8, P8-O2,
+             FZ-CZ, CZ-PZ]          # 18 bipolar channels common to the CHB-MIT recordings
+  fs_in: 256
+  fs: 128                         # signals are resampled to 128 Hz after filtering
+  band: [0.5, 40.0]               # band-pass filter (Hz)
+  notch: 60.0                     # mains frequency in the USA recordings
+  artefact_uv: 500.0              # a window with any |x| above this (µV) is flagged as artefact
+  flat_uv: 1.0                    # a window with a channel whose std is below this (µV) is flagged
+
+protocol:
+  window_s: 5.0
+  stride_s: 2.5                   # 50% overlap
+  sph_min: 5
+  sop_min: 30
+  lead_gap_min: 35                # seizures closer than SPH+SOP to the previous one are merged
+  interictal_gap_h: 4             # interictal windows are at least 4 h from any seizure
+  min_lead_seizures: 3
+  min_interictal_h: 4
+
+features:
+  bands: {delta: [0.5, 4], theta: [4, 8], alpha: [8, 13], beta: [13, 30], gamma: [30, 40]}
+  long_K: 48                      # 48 windows x 2.5 s = 2 min long-scale context
+
+model:
+  name: fuzzygnn
+  hidden: 32                      # per attention head
+  heads: 4
+  layers: 2
+  dropout: 0.2
+  theta_init: 0.5
+  kappa_init: 10.0
+  learn_membership: true
+  membership: sigmoid             # sigmoid | gaussian | hard_gcn | static
+  hard_tau: 0.5
+  gaussian_sigma: 0.2
+  use_eai: true
+  multiscale: true
+  use_attention: true
+
+train:
+  seed: 42
+  seq_len: 16                     # N consecutive windows per training sequence
+  batch_size: 16                  # sequences per mini-batch
+  epochs: 50
+  patience: 8
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  lambda_temp: 0.1
+  undersample_ratio: 4            # interictal:preictal sequences drawn per epoch
+  val_patients: 2
+  device: auto
+
+alarm:
+  n_fp: 24                        # firing-power buffer (24 windows = 1 min)
+  rho_grid: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+  max_val_fpr: 0.15               # rho is the smallest value with validation FPR/h <= this
+  use_firing_power: true
+
+stats:
+  n_surrogates: 200
+  alpha: 0.05
+
+shap:
+  background: 50
+  nsamples: 1024
+  windows_per_patient: 20

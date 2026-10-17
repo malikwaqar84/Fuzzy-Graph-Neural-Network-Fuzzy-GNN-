@@ -1,0 +1,71 @@
+# Tiny configuration for the synthetic smoke test (tests/make_synthetic.py). Not for real experiments.
+data:
+  raw_dir: tests/_synthetic/raw
+  cache_dir: tests/_synthetic/cache
+  channels: [FP1-F7, F7-T7, T7-P7, P7-O1, FP1-F3, F3-C3, C3-P3, P3-O1,
+             FP2-F4, F4-C4, C4-P4, P4-O2, FP2-F8, F8-T8, T8-P8, P8-O2,
+             FZ-CZ, CZ-PZ]
+  fs_in: 256
+  fs: 128
+  band: [0.5, 40.0]
+  notch: 60.0
+  artefact_uv: 500.0
+  flat_uv: 1.0
+
+protocol:
+  window_s: 5.0
+  stride_s: 2.5
+  sph_min: 1
+  sop_min: 5
+  lead_gap_min: 6
+  interictal_gap_h: 0.2
+  min_lead_seizures: 3
+  min_interictal_h: 0.3
+
+features:
+  bands: {delta: [0.5, 4], theta: [4, 8], alpha: [8, 13], beta: [13, 30], gamma: [30, 40]}
+  long_K: 8
+
+model:
+  name: fuzzygnn
+  hidden: 8
+  heads: 2
+  layers: 2
+  dropout: 0.2
+  theta_init: 0.5
+  kappa_init: 10.0
+  learn_membership: true
+  membership: sigmoid
+  hard_tau: 0.5
+  gaussian_sigma: 0.2
+  use_eai: true
+  multiscale: true
+  use_attention: true
+
+train:
+  seed: 42
+  seq_len: 8
+  batch_size: 16
+  epochs: 3
+  patience: 2
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  lambda_temp: 0.1
+  undersample_ratio: 4
+  val_patients: 1
+  device: auto
+
+alarm:
+  n_fp: 8
+  rho_grid: [0.3, 0.5, 0.7, 0.9]
+  max_val_fpr: 0.15
+  use_firing_power: true
+
+stats:
+  n_surrogates: 10
+  alpha: 0.05
+
+shap:
+  background: 5
+  nsamples: 64
+  windows_per_patient: 2
