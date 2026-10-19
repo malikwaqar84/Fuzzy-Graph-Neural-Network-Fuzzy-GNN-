@@ -38,6 +38,8 @@ class PatientData:
         self.seizures = case.seizures_abs()
         self.leads = lead_seizures(case, p["lead_gap_min"] * 60)
         self.files = []
+        if not case.has_times:          # cannot be placed on a timeline; excluded by select_patients
+            return
         root = Path(cache_dir) / case.case_id
         fs = cfg["data"]["fs"]
         for f in case.files:

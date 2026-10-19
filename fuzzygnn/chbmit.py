@@ -35,6 +35,8 @@ class Case:
     def seizures_abs(self):
         """All seizures of the case as (onset, offset) in absolute seconds, sorted."""
         out = []
+        if not self.has_times:          # e.g. chb24: no file times in the summary
+            return out
         for f in self.files:
             for on, off in f.seizures:
                 out.append((f.start_s + on, f.start_s + off))
