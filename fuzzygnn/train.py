@@ -113,7 +113,7 @@ def train_model(model, train_pats, val_pats, norm, cfg, device, log=print):
     T, bs = tc["seq_len"], tc["batch_size"]
     rng = np.random.default_rng(tc["seed"])
     need_raw = getattr(model, "needs_raw", False)
-    tr_pre, tr_int = make_sequences(train_pats, T)
+    tr_pre, tr_int = make_sequences(train_pats, T, tc.get("seq_stride"))   # overlap only if seq_stride is set
     va_pre, va_int = make_sequences(val_pats, T)
     if not tr_pre:
         raise RuntimeError("no preictal training sequences")

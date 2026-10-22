@@ -131,13 +131,15 @@ class Normalizer:
         return ((f["act"][idx] - self.m) / self.s).astype(np.float32)
 
 
-def make_sequences(patients, seq_len):
-    """Non-overlapping sequences of seq_len windows. Returns (pre, inter) lists of (patient, file, start)."""
+def make_sequences(patients, seq_len, stride=None):
+    """Sequences of seq_len windows, non-overlapping unless a smaller stride is given.
+    Returns (pre, inter) lists of (patient, file, start)."""
+    stride = stride or seq_len
     pre, inter = [], []
     for pi, pd in enumerate(patients):
         for fi, f in enumerate(pd.files):
             y, art = f["y"], f["art"]
-            for s in range(0, len(y) - seq_len + 1, seq_len):
+            for s in range(0, len(y) - seq_len + 1, stride):
                 ys, a = y[s:s + seq_len], art[s:s + seq_len]
                 valid = (ys >= 0) & ~a
                 if valid.sum() < seq_len // 2:
